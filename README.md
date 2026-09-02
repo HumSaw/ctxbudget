@@ -4,6 +4,11 @@
 
 `ctxbudget` scans a repo the way Claude Code, Codex CLI, Cursor, GitHub Copilot and Gemini CLI do, and tells you exactly how much of the context window is spent before you type a single word: instruction files, `@imports`, always-on rules, skill and subagent listings, and — the big one — MCP tool schemas.
 
+![ctxbudget report: per-agent fixed cost bars, then a breakdown of instructions, rules, MCP servers, skills, subagents and commands with suggestions](docs/demo.png)
+
+<details>
+<summary>Text version of a report on a larger repo</summary>
+
 ```
 $ npx ctxbudget
 
@@ -24,6 +29,8 @@ Suggestions
     that supports tool search / deferred tool loading.
   ▲ CLAUDE.md is 3.4k tokens and loads every turn. Keep instruction files under ~3.0k …
 ```
+
+</details>
 
 ## Why
 
