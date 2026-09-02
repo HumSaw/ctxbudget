@@ -1,0 +1,33 @@
+name: New agent or config location
+description: An agent, config file, rules folder or MCP config path that ctxbudget should scan
+labels: ["enhancement", "good first issue"]
+body:
+  - type: input
+    id: agent
+    attributes:
+      label: Agent
+      placeholder: "e.g. Windsurf, Cline, Amp, Zed, or an existing agent with a new path"
+    validations:
+      required: true
+  - type: textarea
+    id: paths
+    attributes:
+      label: Files it loads
+      description: Paths, glob patterns and loading mode (every turn / when matched / on demand). Frontmatter fields that control loading are especially useful.
+      placeholder: |
+        .windsurf/rules/*.md — every turn if `trigger: always_on`, otherwise when globs match
+        ~/.codeium/windsurf/mcp_config.json — MCP servers
+    validations:
+      required: true
+  - type: input
+    id: docs
+    attributes:
+      label: Link to the agent's documentation for this behaviour
+    validations:
+      required: true
+  - type: checkboxes
+    id: pr
+    attributes:
+      label: Contribution
+      options:
+        - label: I'd like to open the PR myself (see CONTRIBUTING.md — scanners are ~30 lines)

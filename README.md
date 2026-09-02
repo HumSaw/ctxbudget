@@ -97,6 +97,17 @@ const report = await scan({ cwd: process.cwd(), mcp: false });
 for (const a of report.agents) console.log(a.agent, a.always);
 ```
 
+## Roadmap
+
+Small, deliberate. Open an issue if one of these matters to you — it moves it up the list.
+
+- [ ] More agents: Windsurf, Cline, Amp, Zed, Junie ([template issue](https://github.com/HumSaw/ctxbudget/issues/new?template=new-agent-or-location.yml))
+- [ ] `ctxbudget diff` — compare against the last run or a git ref, print what grew
+- [ ] Per-model tokenizers (Anthropic, Gemini) where a public tokenizer exists
+- [ ] Measure MCP `resources/list` and `prompts/list`, not only tools
+- [ ] GitHub Action with a PR comment ("this PR adds 2.3k tokens to every Claude Code turn")
+- [ ] Watch mode for live editing of `CLAUDE.md` and rules
+
 ## Contributing
 
 ```bash
@@ -105,7 +116,7 @@ pnpm test
 pnpm dev tests/fixtures/basic --no-user
 ```
 
-PRs adding agents or config locations are welcome — each scanner is ~30 lines in `src/scan/`.
+PRs adding agents or config locations are welcome — each scanner is ~30 lines in `src/scan/`. See [CONTRIBUTING.md](CONTRIBUTING.md); security notes (it does start your MCP servers) are in [SECURITY.md](SECURITY.md).
 
 ## License
 

@@ -1,0 +1,35 @@
+name: Wrong or missing count
+description: ctxbudget missed a file, double-counted something, or the number is far from what your agent reports
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent
+      options:
+        - Claude Code
+        - Codex CLI
+        - Cursor
+        - GitHub Copilot
+        - Gemini CLI
+        - Other / several
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What is wrong
+      description: Which file, rule, skill or MCP server is counted incorrectly? What does the agent itself report (e.g. `/context` in Claude Code)?
+    validations:
+      required: true
+  - type: textarea
+    id: json
+    attributes:
+      label: Output of `ctxbudget json`
+      description: Paste the relevant part. Redact anything private.
+      render: json
+  - type: input
+    id: version
+    attributes:
+      label: ctxbudget version and OS
+      placeholder: "0.1.0, macOS 15 / Node 22"
