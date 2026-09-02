@@ -65,7 +65,7 @@ export async function scan(opts: ScanOptions): Promise<Report> {
     s.agents.some((a) => agents.includes(a)),
   );
   mcp.servers = servers.length;
-  if (servers.length && opts.mcp !== false) {
+  if (servers.length && opts.mcp === true) {
     mcp.measured = true;
     const measured = await measureServers(
       servers,
@@ -85,12 +85,11 @@ export async function scan(opts: ScanOptions): Promise<Report> {
         scope: s.scope,
         tokens: 0,
         bytes: 0,
-        detail: `${s.source} · not measured (--no-mcp)`,
+        detail: `${s.source} · not measured (use --mcp)`,
       })),
     );
   }
 
-  // Restrict to requested agents.
   items = items
     .map((i) => ({ ...i, agents: i.agents.filter((a) => agents.includes(a)) }))
     .filter((i) => i.agents.length > 0);
