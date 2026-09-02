@@ -107,6 +107,16 @@ for (const agent of report.agents) {
 }
 ```
 
+## Related tools
+
+Agent configuration has three separate failure modes:
+
+- **ctxbudget** measures how much configuration and MCP schema enters context.
+- **[RuleTrace](https://github.com/HumSaw/ruletrace)** maps which instruction files apply and flags conflicting policies.
+- **[dev-checkup](https://github.com/HumSaw/dev-checkup)** runs broader deterministic repository checks before CI.
+
+Each tool works independently and keeps its default scan local.
+
 ## Roadmap
 
 - [ ] `ctxbudget diff` — compare a branch or commit and show what increased fixed context
