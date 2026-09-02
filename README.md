@@ -2,15 +2,17 @@
 
 **How many tokens does your agent config cost on every turn?**
 
-`ctxbudget` scans a repo the way Claude Code, Codex CLI, Cursor, GitHub Copilot and Gemini CLI do, and tells you exactly how much of the context window is spent before you type a single word: instruction files, `@imports`, always-on rules, skill and subagent listings, and — the big one — MCP tool schemas.
+`ctxbudget` estimates the fixed context cost of a coding-agent setup before the first prompt: instruction files, imports, always-on rules, skill and subagent listings, and MCP tool schemas.
 
-![ctxbudget report: per-agent fixed cost bars, then a breakdown of instructions, rules, MCP servers, skills, subagents and commands with suggestions](docs/demo.png)
+It understands Claude Code, Codex CLI, Cursor, GitHub Copilot and Gemini CLI.
+
+![ctxbudget report](docs/demo.png)
 
 <details>
-<summary>Text version of a report on a larger repo</summary>
+<summary>Example report</summary>
 
-```
-$ npx ctxbudget
+```text
+$ npx ctxbudget --mcp
 
 Fixed cost per turn
   Claude Code      ████████████░░░░░░░░░░░░  ~24.1k 12.1%  +1.6k when matched · 3.2k on demand
@@ -26,23 +28,29 @@ MCP servers  ~20.3k every turn
 Suggestions
   ▲ MCP server "github" adds 12.8k tokens (51 tools) to every turn; the largest tool is
     "create_pull_request_review" at 1.1k. Disable it when not needed, or use an agent
-    that supports tool search / deferred tool loading.
-  ▲ CLAUDE.md is 3.4k tokens and loads every turn. Keep instruction files under ~3.0k …
+    that supports deferred tool loading.
+  ▲ CLAUDE.md is 3.4k tokens and loads every turn. Consider moving path-specific rules
+    out of the global instruction file.
 ```
 
 </details>
 
 ## Why
 
-Every MCP server you add ships its full tool list — names, descriptions, JSON schemas — into the prompt on every turn. Ten servers can quietly eat 40–60k tokens before your code even shows up. Instruction files, `@imports` and `alwaysApply` rules stack on top. Nobody shows you the bill.
+Agent configuration grows quietly. A few instruction files, global rules and MCP servers can consume a meaningful part of the context window before the model sees the task or your code.
 
-`ctxbudget` does what the agents do (reads their config, actually connects to your MCP servers and calls `tools/list`) and counts tokens with the same tokenizer family OpenAI and Anthropic-compatible tooling uses, so the numbers are close to what you really pay.
+`ctxbudget` makes that overhead visible. File-based configuration is scanned without executing repository commands. MCP measurement is optional because accurate tool-schema sizing requires connecting to the configured servers.
 
 ## Install
 
 ```bash
-npx ctxbudget            # zero-install
-pnpm add -g ctxbudget    # or globally
+npx ctxbudget
+```
+
+Or install it globally:
+
+```bash
+pnpm add -g ctxbudget
 ```
 
 Requires Node 20+.
@@ -50,43 +58,43 @@ Requires Node 20+.
 ## Usage
 
 ```bash
-ctxbudget [dir]                  # full report
-ctxbudget --agent claude -v      # one agent, every MCP tool expanded
-ctxbudget --no-mcp               # don't start MCP servers (fast, files only)
-ctxbudget --no-user              # ignore ~/.claude, ~/.codex, ~/.cursor, ~/.gemini
-ctxbudget check --max 15000      # exit 1 if any agent exceeds the budget (CI)
+ctxbudget [dir]                  # scan files and MCP config; does not start MCP servers
+ctxbudget --mcp                  # also start MCP servers and measure tools/list schemas
+ctxbudget --agent claude -v      # one agent, expanded details
+ctxbudget --no-user              # ignore user-level agent config
+ctxbudget check --max 15000      # exit 1 when an agent exceeds the budget
 ctxbudget json | jq .            # machine-readable report
 ```
 
 ### CI gate
 
 ```yaml
-- run: npx ctxbudget check --max 20000 --no-mcp
+- run: npx ctxbudget check --max 20000
 ```
+
+The default scan is safe for CI: it does not execute commands declared by repository MCP configuration.
 
 ## What it measures
 
-| Agent | Instructions | Rules | Skills / subagents | Commands | MCP |
+| Agent | Instructions | Rules | Skills / subagents | Commands | MCP config |
 | --- | --- | --- | --- | --- | --- |
-| Claude Code | `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/CLAUDE.md`, `@imports` (depth 5) | `.claude/rules/*.md` (`paths:`) | `.claude/skills/*/SKILL.md`, `.claude/agents/*.md` | `.claude/commands` | `.mcp.json`, `~/.claude.json` |
+| Claude Code | `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/CLAUDE.md`, `@imports` | `.claude/rules/*.md` | `.claude/skills/*/SKILL.md`, `.claude/agents/*.md` | `.claude/commands` | `.mcp.json`, `~/.claude.json` |
 | Codex CLI | `AGENTS.md`, `AGENTS.override.md`, `~/.codex/AGENTS.md` | – | `.codex/skills`, `.agents/skills` | `.codex/prompts` | `.codex/config.toml` |
-| Cursor | `AGENTS.md`, `.cursorrules` | `.cursor/rules/*.mdc` (`alwaysApply` / `globs` / description) | `.cursor/skills`, `.agents/skills` | `.cursor/commands` | `.cursor/mcp.json` |
-| GitHub Copilot | `.github/copilot-instructions.md`, `AGENTS.md` | `.github/instructions/*.instructions.md` (`applyTo`) | `.github/skills`, `.github/agents` | `.github/prompts` | `.vscode/mcp.json` |
+| Cursor | `AGENTS.md`, `.cursorrules` | `.cursor/rules/*.mdc` | `.cursor/skills`, `.agents/skills` | `.cursor/commands` | `.cursor/mcp.json` |
+| GitHub Copilot | `.github/copilot-instructions.md`, `AGENTS.md` | `.github/instructions/*.instructions.md` | `.github/skills`, `.github/agents` | `.github/prompts` | `.vscode/mcp.json` |
 | Gemini CLI | `GEMINI.md`, `~/.gemini/GEMINI.md` | – | `.gemini/skills` | `.gemini/commands` | `.gemini/settings.json` |
 
 Loading modes:
 
-- **every turn** — counted in the fixed cost (instruction files, always-on rules, skill/subagent *name + description*, MCP tool schemas)
-- **when matched** — path-scoped rules (`paths:`, `globs:`, `applyTo:`); reported separately
-- **on demand** — slash commands, skill bodies; free until used
+- **every turn** — fixed context such as global instructions, always-on rules and skill/subagent listings
+- **when matched** — path-scoped rules such as `paths:`, `globs:` and `applyTo:`
+- **on demand** — slash commands and skill bodies that are loaded only when used
 
-Skills and subagents only pay for their frontmatter listing per turn; the report also shows the full size "when invoked".
-
-MCP servers are started with your config's `command`/`args`/`env` (with `${VAR}` expansion) or connected over Streamable HTTP / SSE, then `tools/list` is paginated and each tool's `{name, description, inputSchema}` is tokenized. Servers declared in more than one agent's config are connected once and attributed to all of them.
+When `--mcp` is enabled, ctxbudget starts configured stdio servers or connects to Streamable HTTP/SSE servers, paginates `tools/list`, and tokenizes each tool's name, description and input schema. Shared servers are connected once and attributed to every agent that uses them.
 
 ## Accuracy
 
-Token counts use `o200k_base` via [`gpt-tokenizer`](https://github.com/niieani/gpt-tokenizer). Anthropic and Google models tokenize slightly differently, and each agent wraps tools in its own template, so treat numbers as ±10% estimates. Relative sizes — *which* server or file dominates — are what matter, and those are exact.
+Token counts use `o200k_base` via [`gpt-tokenizer`](https://github.com/niieani/gpt-tokenizer). Anthropic and Google models tokenize differently, and agents wrap tools in different prompt templates, so absolute totals are estimates. Treat them as roughly ±10%; relative sizes are the useful part of the report.
 
 ## Programmatic use
 
@@ -94,19 +102,19 @@ Token counts use `o200k_base` via [`gpt-tokenizer`](https://github.com/niieani/g
 import { scan } from "ctxbudget";
 
 const report = await scan({ cwd: process.cwd(), mcp: false });
-for (const a of report.agents) console.log(a.agent, a.always);
+for (const agent of report.agents) {
+  console.log(agent.agent, agent.always);
+}
 ```
 
 ## Roadmap
 
-Small, deliberate. Open an issue if one of these matters to you — it moves it up the list.
-
-- [ ] More agents: Windsurf, Cline, Amp, Zed, Junie ([template issue](https://github.com/HumSaw/ctxbudget/issues/new?template=new-agent-or-location.yml))
-- [ ] `ctxbudget diff` — compare against the last run or a git ref, print what grew
-- [ ] Per-model tokenizers (Anthropic, Gemini) where a public tokenizer exists
-- [ ] Measure MCP `resources/list` and `prompts/list`, not only tools
-- [ ] GitHub Action with a PR comment ("this PR adds 2.3k tokens to every Claude Code turn")
-- [ ] Watch mode for live editing of `CLAUDE.md` and rules
+- [ ] `ctxbudget diff` — compare a branch or commit and show what increased fixed context
+- [ ] GitHub Action with a PR comment for context-budget changes
+- [ ] More agents: Windsurf, Cline, Amp, Zed and Junie
+- [ ] Per-model tokenizers where public implementations are available
+- [ ] MCP `resources/list` and `prompts/list`
+- [ ] Watch mode for editing instruction files and rules
 
 ## Contributing
 
@@ -116,7 +124,7 @@ pnpm test
 pnpm dev tests/fixtures/basic --no-user
 ```
 
-PRs adding agents or config locations are welcome — each scanner is ~30 lines in `src/scan/`. See [CONTRIBUTING.md](CONTRIBUTING.md); security notes (it does start your MCP servers) are in [SECURITY.md](SECURITY.md).
+PRs that add agent config locations or improve measurement are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). Security details, especially around `--mcp`, are in [SECURITY.md](SECURITY.md).
 
 ## License
 
