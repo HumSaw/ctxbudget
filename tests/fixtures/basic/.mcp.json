@@ -1,0 +1,6 @@
+{
+  "mcpServers": {
+    "everything": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-everything"] },
+    "broken": { "command": "definitely-not-a-real-binary-xyz" }
+  }
+}

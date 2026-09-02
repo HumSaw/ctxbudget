@@ -1,0 +1,74 @@
+{
+  "name": "ctxbudget",
+  "version": "0.1.0",
+  "description": "See how many tokens your CLAUDE.md, AGENTS.md, rules, skills and MCP servers cost your coding agent on every turn — and fail CI when it bloats.",
+  "keywords": [
+    "claude-code",
+    "codex",
+    "cursor",
+    "copilot",
+    "mcp",
+    "agents-md",
+    "claude-md",
+    "tokens",
+    "context-window",
+    "token-optimization",
+    "developer-tools",
+    "cli",
+    "ai-agents",
+    "context-engineering"
+  ],
+  "homepage": "https://github.com/HumSaw/ctxbudget#readme",
+  "bugs": "https://github.com/HumSaw/ctxbudget/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HumSaw/ctxbudget.git"
+  },
+  "license": "MIT",
+  "author": "HumSaw",
+  "type": "module",
+  "bin": {
+    "ctxbudget": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build"
+  },
+  "packageManager": "pnpm@10.34.3",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "gpt-tokenizer": "^4.0.0",
+    "picocolors": "^1.1.1",
+    "smol-toml": "^1.8.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.11",
+    "@types/node": "^26.4.1",
+    "tsup": "^8.5.1",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}
