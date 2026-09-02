@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- MCP tool-schema measurement is now opt-in with `--mcp`. A normal `ctxbudget` scan no longer starts commands declared by repository MCP configuration.
+- README and security documentation now distinguish file scanning from active MCP measurement more clearly.
+
 ## 0.1.0 — 2026-09-02
 
 First release.
@@ -12,7 +19,7 @@ First release.
 - Skills, subagents and slash commands for every agent, with the per-turn listing cost separated from the "when invoked" body size.
 - **MCP measurement**: discovers servers in `.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`, `.vscode/mcp.json`, `.gemini/settings.json` and user-level configs; connects over stdio / Streamable HTTP / SSE, paginates `tools/list`, tokenizes each tool schema. Servers shared between agents are connected once.
 - Suggestions engine (oversized MCP servers, large instruction files, always-on rules that should be scoped, duplicated content).
-- `check --max N` for CI gating, `json` for machine-readable output, `--agent`, `--no-mcp`, `--no-user`, `-v`.
+- `check --max N` for CI gating, `json` for machine-readable output, `--agent`, `--no-user`, `-v`.
 - Programmatic API: `import { scan } from "ctxbudget"`.
 
 ### Known limitations
