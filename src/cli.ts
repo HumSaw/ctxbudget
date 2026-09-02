@@ -10,7 +10,7 @@ const HELP = `
 ${pc.bold("ctxbudget")} – how many tokens does your agent config cost on every turn?
 
 ${pc.bold("Usage")}
-  ctxbudget [dir]                 Full report (instructions, rules, skills, MCP servers)
+  ctxbudget [dir]                 Scan instruction files, rules, skills and MCP config
   ctxbudget check [dir] --max N   Exit 1 if any agent's per-turn overhead exceeds N tokens
   ctxbudget json [dir]            Machine-readable report on stdout
 
@@ -18,7 +18,7 @@ ${pc.bold("Options")}
   --agent <name>       Only report for one agent: ${AGENTS.join(", ")}
   --max <tokens>       Budget for \`check\` (default 20000)
   --window <tokens>    Context window used for percentages (default ${DEFAULT_CONTEXT_WINDOW})
-  --no-mcp             Do not start MCP servers (skip tool-schema measurement)
+  --mcp                Start configured MCP servers and measure tool schemas
   --no-user            Ignore ~/.claude, ~/.codex, ~/.cursor, … (project files only)
   --timeout <ms>       Per-server MCP timeout (default 20000)
   --verbose, -v        Expand every MCP tool and @import
@@ -28,6 +28,7 @@ ${pc.bold("Options")}
 
 ${pc.bold("Examples")}
   npx ctxbudget
+  npx ctxbudget --mcp
   npx ctxbudget --agent claude -v
   npx ctxbudget check --max 15000        # in CI
   npx ctxbudget json | jq '.agents[] | {agent, always}'
@@ -47,7 +48,7 @@ async function main(argv: string[]) {
       agent: { type: "string" },
       max: { type: "string" },
       window: { type: "string" },
-      mcp: { type: "boolean", default: true },
+      mcp: { type: "boolean", default: false },
       user: { type: "boolean", default: true },
       timeout: { type: "string" },
       verbose: { type: "boolean", short: "v", default: false },
