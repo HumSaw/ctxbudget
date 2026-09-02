@@ -60,7 +60,18 @@ describe("mcp config", () => {
   });
 });
 
-describe("scan (no MCP)", () => {
+describe("scan", () => {
+  it("does not start or measure MCP servers by default", async () => {
+    const report = await scan({ cwd: fixture, homeDir: emptyHome, includeUser: false });
+    expect(report.mcp.measured).toBe(false);
+    expect(report.mcp.servers).toBeGreaterThan(0);
+    expect(
+      report.items
+        .filter((item) => item.kind === "mcp-server")
+        .every((item) => item.tokens === 0 && item.detail?.includes("use --mcp")),
+    ).toBe(true);
+  });
+
   it("attributes files to the right agents and loading modes", async () => {
     const report = await scan({ cwd: fixture, homeDir: emptyHome, includeUser: false, mcp: false });
     const byPath = new Map(report.items.map((i) => [i.path, i]));
@@ -83,7 +94,6 @@ describe("scan (no MCP)", () => {
 
     const claude = report.agents.find((a) => a.agent === "claude");
     const cursor = report.agents.find((a) => a.agent === "cursor");
-    // CLAUDE.md + import + skill/subagent listings, but not the conditional rule.
     expect(claude?.always).toBeGreaterThan(1000);
     expect(claude?.conditional).toBe(byPath.get(".claude/rules/api.md")?.tokens);
     expect(cursor?.always).toBeGreaterThan(1000);
