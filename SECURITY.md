@@ -2,12 +2,20 @@
 
 ## What ctxbudget does on your machine
 
-Worth knowing before you run it on an unfamiliar repo:
+`ctxbudget` is read-only by default. It scans agent instruction files, rules, skills, commands and MCP configuration without starting commands from the repository.
 
-- **It starts your MCP servers.** By default `ctxbudget` spawns every stdio MCP server declared in the repo's agent configs (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`, `.vscode/mcp.json`, `.gemini/settings.json`) and in your user-level configs, exactly as the agent would, then calls `tools/list` and disconnects. A malicious repo can therefore run arbitrary commands through its MCP config — the same risk you take by opening that repo in Claude Code or Cursor. Use `--no-mcp` on repos you don't trust, or `--no-user` to skip your own servers.
-- **It reads config, not source.** Only instruction files, rules, skills, commands and MCP configs are read. Nothing is sent anywhere; there is no telemetry.
-- **Env expansion.** `${VAR}` in MCP configs is expanded from your environment so servers can start, but values are never printed or written to the report.
+MCP tool-schema measurement is opt-in:
+
+```bash
+ctxbudget --mcp
+```
+
+With `--mcp`, ctxbudget starts configured stdio MCP servers or connects to configured HTTP/SSE servers, calls `tools/list`, records schema sizes, then disconnects. Treat this the same way you would treat opening an unfamiliar repository in an agent that enables its MCP configuration: a repository-controlled stdio command can execute code on your machine.
+
+For repositories you do not trust, run the default command and leave `--mcp` off. Use `--no-user` if you also want to ignore user-level agent configuration.
+
+Environment variables referenced by MCP config are expanded only when `--mcp` is used. Their values are never included in the report. ctxbudget has no telemetry and does not upload scanned files.
 
 ## Reporting a vulnerability
 
-If you find a way for `ctxbudget` to do something beyond the above — e.g. execute code from a repo with `--no-mcp` set, or leak environment values into output — please report it privately via [GitHub Security Advisories](https://github.com/HumSaw/ctxbudget/security/advisories/new) rather than a public issue. You should get a response within a few days.
+Please report security issues privately through [GitHub Security Advisories](https://github.com/HumSaw/ctxbudget/security/advisories/new), especially anything that causes command execution without `--mcp` or exposes environment values in output.
